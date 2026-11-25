@@ -1,4 +1,4 @@
- - name: Build project id:   build   continue-on-error: true    run: |
+ - name:      Build project id:   build   continue-on-error: true    run: |
          set +e
           echo "Starting Android build..."
 
