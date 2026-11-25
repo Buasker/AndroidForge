@@ -1,8 +1,7 @@
-- name: Build project
-        id: build
-        continue-on-error: true
-        run: |
-          set +e
+ - name: Build project id:   build   continue-on-error: true    run: |
+         set +e
+          echo "Starting Android build..."
+
           python3 "$GITHUB_WORKSPACE/scripts/build_project.py" \
             --root "${{ steps.extract.outputs.project_root }}" \
             --detect "$GITHUB_WORKSPACE/detection.json" \
@@ -10,15 +9,31 @@
             --variant "${{ inputs.build_variant || 'auto' }}" \
             --log-dir "$GITHUB_WORKSPACE/.androidforge/logs" \
             --output "$GITHUB_WORKSPACE/build.json"
+
           BUILD_RC=$?
+
           echo "Build script exit code: $BUILD_RC"
+
           if [ ! -f "$GITHUB_WORKSPACE/build.json" ]; then
             echo '{"build_succeeded": false, "successful_command": null, "exit_code": -1, "log_file": null}' > "$GITHUB_WORKSPACE/build.json"
           fi
-          echo "::group::Build result JSON"
+
+          echo "========== BUILD RESULT =========="
           cat "$GITHUB_WORKSPACE/build.json"
-          echo "::endgroup::"
-          echo "::group::Available build logs"
-          find "$GITHUB_WORKSPACE/.androidforge/logs" -maxdepth 1 -type f -print 2>/dev/null || true
-          echo "::endgroup::"
+
+          echo "========== BUILD LOG FILES =========="
+
+          if [ -d "$GITHUB_WORKSPACE/.androidforge/logs" ]; then
+            find "$GITHUB_WORKSPACE/.androidforge/logs" -maxdepth 1 -type f -print
+
+            for LOG in "$GITHUB_WORKSPACE"/.androidforge/logs/*.log; do
+              if [ -f "$LOG" ]; then
+                echo "========== $LOG =========="
+                cat "$LOG"
+              fi
+            done
+          fi
+
+          echo "========== BUILD STEP FINISHED =========="
+
           exit 0
